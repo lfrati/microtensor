@@ -1,9 +1,7 @@
+from microtensor import Tensor
 import numpy as np
-import pytest
 from rich import print as pprint
 import torch
-
-from microtensor import Tensor
 
 
 def compare(v_torch, v, name):
@@ -12,8 +10,7 @@ def compare(v_torch, v, name):
     pprint(f"{name.upper():>8} MATCH : [green]OK")
 
 
-@pytest.fixture
-def forward():
+def test_linear():
     x = Tensor.randn(3, 8)
     w = Tensor.uniform(8, 4)
     b = Tensor.uniform(1, 4)
@@ -53,26 +50,6 @@ def forward():
 
     a3_torch.backward(retain_graph=True)
 
-    state = {}
-    state["x"] = x
-    state["w"] = w
-    state["b"] = b
-    state["x_torch"] = x_torch
-    state["w_torch"] = w_torch
-    state["b_torch"] = b_torch
-    state["out"] = a3
-    state["out_torch"] = a3_torch
-
-    return state
-
-
-def test_input(forward):
-    compare(forward["x_torch"], forward["x"], "xs")
-
-
-def test_weight(forward):
-    compare(forward["w_torch"], forward["w"], "weights")
-
-
-def test_bias(forward):
-    compare(forward["b_torch"], forward["b"], "biases")
+    compare(x_torch, x, "xs")
+    compare(w_torch, w, "weights")
+    compare(b_torch, b, "biases")
