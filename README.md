@@ -1,4 +1,7 @@
-# µTens⨂r
+<h1 align="center">
+   µTens⨂r
+   <p></p>
+</h1>
 
 ([micrograd](https://github.com/karpathy/micrograd) + [tinygrad](https://github.com/geohot/tinygrad))/2
 
@@ -18,7 +21,6 @@ def __mul__(self, other):
 ```
 - [tinytensor](./tinytensor.py) implements a simplified version of the tinygrad/pytorch style:
 ```python
-# inside Tensor
 class Mul(Function):
     def forward(self, x, y):
         self.save_for_backward(x, y)
