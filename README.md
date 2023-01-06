@@ -34,4 +34,6 @@ class Mul(Function):
         
 setattr(Tensor, "__mul__", functools.partialmethod(Mul.apply))
 ```
-While tinygrad is beautifully general to support multiple backends we assume numpy/cpu backend for simplicity.
+While tinygrad is beautifully flexible and supports multiple backends we assume numpy/cpu backend for simplicity.
+
+The [nn.py](./nn.py) module is inspired by torch's [nn.Module](https://pytorch.org/docs/stable/_modules/torch/nn/modules/module.html#Module).
