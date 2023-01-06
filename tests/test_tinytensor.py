@@ -1,35 +1,56 @@
 import numpy as np
-from rich import print as pprint
-from tinytensor import Linear, Tensor
-import torch
-import torch.nn.functional as F
+from tinytensor import Tensor
 
 
-def compare(v_torch, v, name):
-    grad = v_torch.grad.numpy()
-    assert np.allclose(grad, v.grad.data), f"{name.upper()} DO NOT MATCH"
-    pprint(f"{name.upper():>8} MATCH : [green]OK")
+def test_add():
+    a = Tensor.randn(3, 8)
+    b = Tensor.randn(3, 8)
+
+    c = a + b
+
+    assert np.allclose(a.data + b.data, c.data)
 
 
-def test_linear():
+def test_add():
+    a = Tensor.randn(3, 8)
+    b = Tensor.randn(3, 8)
 
-    x = Tensor.randn(3, 8)
-    fc = Linear(in_features=8, out_features=4)
-    a3 = fc(x).relu()
-    a4 = a3.sum()
-    a4.backward()
+    c = a * b
 
-    x_torch = torch.from_numpy(x.data.copy())
-    w_torch = torch.from_numpy(fc.w.data.copy())
-    b_torch = torch.from_numpy(fc.b.data.copy())
-    x_torch.requires_grad = True
-    w_torch.requires_grad = True
-    b_torch.requires_grad = True
-    a3_torch = F.linear(input=x_torch, weight=w_torch.T, bias=b_torch).relu()
-    a4_torch = a3_torch.sum()
+    assert np.allclose(a.data * b.data, c.data)
 
-    a4_torch.backward(retain_graph=True)
 
-    compare(x_torch, x, "xs")
-    compare(w_torch, fc.w, "weights")
-    compare(b_torch, fc.b, "biases")
+def test_matmul():
+    a = Tensor.randn(3, 8)
+    b = Tensor.randn(8, 3)
+
+    c = a @ b
+
+    assert np.allclose(a.data @ b.data, c.data)
+
+
+def test_sum():
+    a = Tensor.randn(3, 8)
+
+    c = a.sum()
+
+    assert np.allclose(a.data.sum(keepdims=True), c.data)
+
+
+def test_broadcast():
+
+    a = Tensor.randn(4, 8)
+    b = Tensor.randn(1, 8)
+
+    c = a + b.broadcast(a)
+
+    assert np.allclose(a.data + b.data, c.data)
+
+
+def test_relu():
+
+    a = Tensor.randn(8, 512)
+
+    c = a.relu()
+
+    assert np.allclose(np.maximum(a.data, 0), c.data)

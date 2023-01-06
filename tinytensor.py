@@ -95,7 +95,15 @@ def broadcast_dims(a, b):
     return tuple(dims)
 
 
-class Tensor:
+class Parameter:
+    def parameters(self):
+        return [self]
+
+    def named_parameters(self):
+        return [("", self)]
+
+
+class Tensor(Parameter):
     def __init__(self, data: np.ndarray):
         self.data = data
         self.shape = data.shape
@@ -278,17 +286,3 @@ register("__matmul__", Matmul)
 register("sum", Sum)
 register("broadcast", Broadcast)
 register("relu", ReLU)
-
-
-class Linear:
-    def __init__(self, in_features, out_features, bias_value=0.01):
-        self.w = Tensor.uniform(in_features, out_features)
-        self.b = Tensor.full(shape=(1, out_features), fill_value=bias_value)
-
-    def __call__(self, x):
-        x = x @ self.w
-        x = x + self.b.broadcast(x)
-        return x
-
-    def parameters(self):
-        return [self.w, self.b]
