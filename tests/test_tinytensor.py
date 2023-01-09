@@ -11,13 +11,22 @@ def test_add():
     assert np.allclose(a.data + b.data, c.data)
 
 
-def test_add():
+def test_sub():
     a = Tensor.randn(3, 8)
     b = Tensor.randn(3, 8)
 
-    c = a * b
+    c = a - b
 
-    assert np.allclose(a.data * b.data, c.data)
+    assert np.allclose(a.data - b.data, c.data)
+
+
+def test_pow():
+    a = Tensor.randn(3, 8)
+    b = Tensor.from_list(2)
+
+    c = a**b
+
+    assert np.allclose(a.data**2, c.data)
 
 
 def test_matmul():

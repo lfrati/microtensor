@@ -12,11 +12,12 @@ def compare(v_torch, v, name):
     pprint(f"{name.upper():>8} MATCH : [green]OK")
 
 
-def test_mlp():
+def test_xor():
 
-    net = MLP(8, 32, 10)
-    optim = SGD(net.parameters(), lr=0.001)
-    xs = Tensor.randn(3, 8)
+    net = MLP(2, 32, 1)
+    optim = SGD(net.parameters(), lr=0.01)
+    xs = Tensor.from_list([[0, 0], [0, 1], [1, 0], [1, 1]])
+    ys = Tensor.from_list([[0], [1], [1], [0]])
 
     # print(net)
     #
@@ -31,21 +32,33 @@ def test_mlp():
     # print()
     # print("Forwarding")
 
-    out = net(xs).sum()
+    def squared_err(x, y):
+        return ((x - y) ** Tensor.from_list(2)).sum()
 
-    start_val = out.data.copy()
+    out = net(xs)
+    loss = squared_err(out, ys)
 
-    for _ in range(5):
+    start_loss = loss.data.copy()
 
-        out = net(xs).sum()
-        out.backward()
+    for _ in range(200):
+
+        out = net(xs)
+        loss = squared_err(out, ys)
+        print(loss.data)
+        loss.backward()
 
         optim.step()
         optim.zero_grad()
 
-    end_val = out.data.copy()
+    end_loss = loss.data.copy()
+    final_pred = np.where(out.data > 0.5, 1.0, 0.0)
 
-    assert end_val < start_val
+    print(f"Loss decreade from {start_loss} to {end_loss}")
+    print("Expected", ys.data.T)
+    print("     Got", final_pred.T)
+
+    assert end_loss < start_loss
+    assert np.allclose(final_pred, ys.data)
 
 
 def test_linear():

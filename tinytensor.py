@@ -104,9 +104,10 @@ class Parameter:
 
 
 class Tensor(Parameter):
-    def __init__(self, data: np.ndarray):
+    def __init__(self, data: np.ndarray, requires_grad=True):
         self.data = data
         self.shape = data.shape
+        self.requires_grad = requires_grad
         self.grad = None
         self._ctx: Optional[Function] = None
 
@@ -134,6 +135,10 @@ class Tensor(Parameter):
         data = np.random.default_rng().standard_normal(size=shape, dtype=np.float32)
         return cls(data, **kwargs)
 
+    @classmethod
+    def from_list(cls, _list, **kwargs):
+        return cls(np.array(_list, dtype=np.float32), requires_grad=False, **kwargs)
+
     def __add__(self, other):
         raise NotImplementedError
 
@@ -144,7 +149,7 @@ class Tensor(Parameter):
         raise NotImplementedError
 
     def __repr__(self):
-        return f"Tensor({self.data} shape:{self.shape}, grad:{self.grad})"
+        return f"Tensor({self.data} shape:{self.shape}, grad:{self.grad}, trainable:{self.requires_grad})"
 
     def toposort(self):
         def _toposort(node, visited, nodes):
@@ -166,7 +171,7 @@ class Tensor(Parameter):
         self.grad = Tensor.ones(*self.shape)
 
         for node in self.toposort():
-            assert node.grad is not None
+            assert not node.requires_grad or node.grad is not None, node
             if not node._ctx:  # leaves have no context
                 continue
 
@@ -177,7 +182,7 @@ class Tensor(Parameter):
             else:
                 grads = [Tensor(g) if g is not None else None for g in grads]
             for parent, grad in zip(node._ctx.parents, grads):
-                if grad is not None:
+                if grad is not None and parent.requires_grad:
                     assert (
                         grad.shape == parent.shape
                     ), f"grad shape must match tensor shape: {grad.shape!r} != {parent.shape!r}"
@@ -218,6 +223,24 @@ class Add(Function):
 
     def backward(self, grad_output):
         return (grad_output, grad_output)
+
+
+class Sub(Function):
+    def forward(self, x, y):
+        return x - y
+
+    def backward(self, grad_output):
+        return (grad_output, -grad_output)
+
+
+class Pow(Function):
+    def forward(self, x, y):
+        self.save_for_backward(x, y)
+        return x**y
+
+    def backward(self, grad_output):
+        base, exponent = self.saved_tensors
+        return (exponent * base * (exponent - 1) * grad_output, None)
 
 
 class Mul(Function):
@@ -281,6 +304,8 @@ def register(name: str, fxn: Function):
 
 
 register("__add__", Add)
+register("__sub__", Sub)
+register("__pow__", Pow)
 register("__mul__", Mul)
 register("__matmul__", Matmul)
 register("sum", Sum)
