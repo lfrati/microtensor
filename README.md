@@ -37,3 +37,13 @@ setattr(Tensor, "__mul__", functools.partialmethod(Mul.apply))
 While tinygrad is beautifully flexible and supports multiple backends we assume numpy/cpu backend for simplicity.
 
 The [nn.py](./nn.py) module is inspired by torch's [nn.Module](https://pytorch.org/docs/stable/_modules/torch/nn/modules/module.html#Module).
+
+## Convolutions
+Convolutions are pretty cool because turns out the backward pass can be implemented as convolutions too (kinda like matmuls are transposed matmuls on the backward pass).
+
+Image from [neodelphis](https://neodelphis.github.io/convnet/maths/python/english/2019/07/10/convnet-bp-en.html):
+
+<img width="400" alt="image" src="https://user-images.githubusercontent.com/3115640/211423054-dafb7b61-a6b4-4683-9f0d-68e89d8ee970.png">
+
+[convolutions.py](./convolutions.py) implements a strided-numpy version of convolutions and gradients FOR THE SINGLE CHANNEL CASE.
+- [ ] Make convolutions work for multi channels in/out.
